@@ -33,7 +33,8 @@ function App() {
         setVmPriceData(allVmPriceData.filter(vm =>
             vm["vCpus"] >= minCpus &&
             vm["memoryGB"] >= minMemory &&
-            vm["memoryGB"] >= minCpuMemory * vm["vCpus"]
+            vm["memoryGB"] >= minCpuMemory * vm["vCpus"] &&
+            continents.includes(vm["region"].split("-")[0])
         ).sort((a, b) => a["hour"] - b["hour"]));
     }, [minCpus, minMemory, minCpuMemory, allVmPriceData]);
     return (<div className="App">
