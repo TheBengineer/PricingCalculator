@@ -35,9 +35,9 @@ function App() {
                     label: family,
                     data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
                         return {
-                            x: vm["hour"] / vm["vCpus"],
-                            y: vm["coremarkScore"] / vm["vCpus"],
-                            r: vm["memoryGB"] / vm["vCpus"],
+                            x: vm["coremarkScore"] / vm["vCpus"] / vm["hour"],
+                            y: vm["coremarkScore"] / vm["vCpus"] / vm["hourSpot"],
+                            r: Math.log(vm["vCpus"]),
                             label: vm["name"],
                             series: vm["name"].split("-")[0],
                             region: vm["region"],
@@ -46,6 +46,7 @@ function App() {
                             coremarkScore: vm["coremarkScore"],
                             hour: vm["hour"],
                             price: `$${vm["hour"]}`,
+                            spot: `$${vm["hourSpot"]}`,
                         };
                     }),
                     tooltip: {
@@ -57,7 +58,7 @@ function App() {
                                     return "";
                                 }
                                 label.push(context.dataset.data[context.dataIndex].label);
-                                secondRow += `Region: ${context.dataset.data[context.dataIndex].region}, vCpus: ${context.dataset.data[context.dataIndex].vCpus}, Mem: ${context.dataset.data[context.dataIndex].memoryGB}GB, Score: ${context.dataset.data[context.dataIndex].coremarkScore}, Price: ${context.dataset.data[context.dataIndex].price}`;
+                                secondRow += `Region: ${context.dataset.data[context.dataIndex].region}, vCpus: ${context.dataset.data[context.dataIndex].vCpus}, Mem: ${context.dataset.data[context.dataIndex].memoryGB}GB, Score: ${context.dataset.data[context.dataIndex].coremarkScore}, Price: ${context.dataset.data[context.dataIndex].price}, Spot: ${context.dataset.data[context.dataIndex].spot}`;
                                 label.push(secondRow);
                                 return label;
                             }
