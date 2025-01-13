@@ -75,6 +75,7 @@ function App() {
     function updateRegions() {
         const allRegionsOnContinent = Array.from(new Set(allVmPriceData.map(vm => vm["region"]).filter(region => continents.includes(region.split("-")[0]))));
         setAllContinentRegions(allRegionsOnContinent);
+        setRegions(allRegionsOnContinent);
         console.log("All regions", allRegionsOnContinent);
     }
 
@@ -106,7 +107,7 @@ function App() {
     }, [continents]);
     useEffect(() => {
         filterVms();
-    }, [minCpus, minMemory, minCpuMemory, allContinentRegions]);
+    }, [minCpus, minMemory, minCpuMemory, regions]);
 
 
     return <div className="App">
