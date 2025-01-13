@@ -36,7 +36,7 @@ function App() {
                     data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
                         return {
                             x: vm["hour"] / vm["vCpus"],
-                            y: vm["coremarkScore"],
+                            y: vm["coremarkScore"] / vm["vCpus"],
                             r: vm["memoryGB"] / vm["vCpus"],
                             label: vm["name"],
                             series: vm["name"].split("-")[0],
@@ -62,7 +62,7 @@ function App() {
                                 return label;
                             },
                             title: function (context) {
-                                return context[0].dataset.label;
+                                return "asdfasdf";
                             }
                         }
                     }
@@ -154,36 +154,33 @@ function App() {
                             title: {
                                 display: true,
                             },
-                            tooltip: {
-                                bodyColor: 'white', // Tooltip text color
-                                backgroundColor: 'rgba(0, 0, 0, 0.7)', // Tooltip background color
-                                borderColor: 'white', // Tooltip border color
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function (data) {
-                                        return data.dataset.label;
-                                    }
-                                }
-                            }
                         },
                         scales: {
                             x: {
                                 ticks: {
-                                    color: 'white', // X-axis text color for dark mode
+                                    color: 'black', // X-axis text color for dark mode
                                     callback: function (value, index, values) {
-                                        return new Date(value).toLocaleString(); // Format X-axis time
+                                        return "$" + value.toFixed(3); // Format X-axis time
                                     }
                                 },
                                 grid: {
-                                    color: 'rgba(255, 255, 255, 0.2)' // X-axis grid line color
+                                    color: 'rgba(10, 10, 10, 0.2)' // X-axis grid line color
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Price per vCPU Core' // X-axis title
                                 }
                             },
                             y: {
                                 ticks: {
-                                    color: 'white' // Y-axis text color for dark mode
+                                    color: 'black' // Y-axis text color for dark mode
                                 },
                                 grid: {
-                                    color: 'rgba(255, 255, 255, 0.2)' // Y-axis grid line color
+                                    color: 'rgba(10, 10, 10, 0.2)' // Y-axis grid line color
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Coremark Score per vCPU Code' // Y-axis title
                                 }
                             }
                         }
