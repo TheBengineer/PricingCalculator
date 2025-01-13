@@ -32,7 +32,8 @@ function App() {
         const datasets = {
             datasets: [...vmFamilies].map(family => {
                 return {
-                    label: family, data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
+                    label: family,
+                    data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
                         return {
                             x: vm["hour"] / vm["vCpus"],
                             y: vm["coremarkScore"] / vm["vCpus"],
@@ -46,7 +47,8 @@ function App() {
                             hour: vm["hour"],
                             price: `$${vm["hour"]}`,
                         };
-                    }), tooltip: {
+                    }),
+                    tooltip: {
                         callbacks: {
                             label: function (context) {
                                 const label = [];
@@ -58,8 +60,6 @@ function App() {
                                 secondRow += `Region: ${context.dataset.data[context.dataIndex].region}, vCpus: ${context.dataset.data[context.dataIndex].vCpus}, Mem: ${context.dataset.data[context.dataIndex].memoryGB}GB, Score: ${context.dataset.data[context.dataIndex].coremarkScore}, Price: ${context.dataset.data[context.dataIndex].price}`;
                                 label.push(secondRow);
                                 return label;
-                            }, title: function (context) {
-                                return "asdfasdf";
                             }
                         }
                     }
@@ -114,7 +114,8 @@ function App() {
                     className="chart"
                     data={datasets}
                     options={{
-                        responsive: true, maintainAspectRatio: false, // Add this to allow custom width and height
+                        responsive: true,
+                        maintainAspectRatio: false, // Add this to allow custom width and height
                         plugins: {
                             zoom: {
                                 zoom: {
@@ -125,11 +126,10 @@ function App() {
                                     enabled: true, mode: "x", speed: 100
                                 }
                             }, legend: {
-                                position: 'top', labels: {
-                                    color: 'white' // Legend text color for dark mode
-                                }
-                            }, title: {
-                                display: true,
+                                position: 'top',
+                                labels: {
+                                    color: 'black' // Legend text color for dark mode
+                                },
                             },
                         }, scales: {
                             x: {
