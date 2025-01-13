@@ -2,6 +2,7 @@ import logo from './Logo/Price Calculator Logo.png';
 import './App.css';
 import {useEffect, useState} from "react";
 import {getVmPriceData} from "./data";
+import {Form} from "react-bootstrap";
 
 
 function App() {
@@ -16,6 +17,9 @@ function App() {
                 Price Calculator
             </h1>
         </div>
+            <Form>
+
+            </Form>
         <div>
             {vmPriceData.map((vm, index) => {
                     return (

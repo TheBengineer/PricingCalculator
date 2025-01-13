@@ -9,4 +9,4 @@ if __name__ == "__main__":
         f.write(response.content)
     reader = csv.DictReader(decoded_content.splitlines(), delimiter=',')
     with open("price_data.json", "w") as f:
-        f.write(json.dumps(list(reader),))
+        f.write(json.dumps(list(reader)[0:10],))
