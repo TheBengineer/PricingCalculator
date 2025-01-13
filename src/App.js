@@ -32,8 +32,7 @@ function App() {
         const datasets = {
             datasets: [...vmFamilies].map(family => {
                 return {
-                    label: family,
-                    data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
+                    label: family, data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
                         return {
                             x: vm["hour"] / vm["vCpus"],
                             y: vm["coremarkScore"] / vm["vCpus"],
@@ -47,8 +46,7 @@ function App() {
                             hour: vm["hour"],
                             price: `$${vm["hour"]}`,
                         };
-                    }),
-                    tooltip: {
+                    }), tooltip: {
                         callbacks: {
                             label: function (context) {
                                 const label = [];
@@ -60,8 +58,7 @@ function App() {
                                 secondRow += `Region: ${context.dataset.data[context.dataIndex].region}, vCpus: ${context.dataset.data[context.dataIndex].vCpus}, Mem: ${context.dataset.data[context.dataIndex].memoryGB}GB, Score: ${context.dataset.data[context.dataIndex].coremarkScore}, Price: ${context.dataset.data[context.dataIndex].price}`;
                                 label.push(secondRow);
                                 return label;
-                            },
-                            title: function (context) {
+                            }, title: function (context) {
                                 return "asdfasdf";
                             }
                         }
@@ -72,15 +69,16 @@ function App() {
         setDatasets(datasets);
     }
 
-    function updateRegions() {
+
+    useEffect(() => {
+        getVmPriceData(setAllVmPriceData);
+    }, []);
+    useEffect(() => {
         const allRegionsOnContinent = Array.from(new Set(allVmPriceData.map(vm => vm["region"]).filter(region => continents.includes(region.split("-")[0]))));
         setAllContinentRegions(allRegionsOnContinent);
         setRegions(allRegionsOnContinent);
-        console.log("All regions", allRegionsOnContinent);
-    }
-
-    function filterVms() {
-        console.log("Filtering VMs");
+    }, [allVmPriceData, continents]);
+    useEffect(() => {
         if (!(minCpus > 0)) {
             setMinMemory(0);
         }
@@ -90,24 +88,12 @@ function App() {
         if (!(minCpuMemory > 0)) {
             setMinCpuMemory(0);
         }
-        const newVmPriceData = allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && regions.includes(vm["region"])).sort((a, b) => a["hour"] - b["hour"]);
+        const newVmPriceData = allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && regions.includes(vm["region"]))
+            .sort((a, b) => b["coremarkScore"] / b["hour"] - a["coremarkScore"] / a["hour"]);
+        console.log("Filtered " + newVmPriceData.length + " VMs");
         setVmPriceData(newVmPriceData);
         buildDatasets(newVmPriceData);
-    }
-
-    useEffect(() => {
-        getVmPriceData(setAllVmPriceData);
-    }, []);
-    useEffect(() => {
-        updateRegions();
-        filterVms();
-    }, [allVmPriceData]);
-    useEffect(() => {
-        updateRegions();
-    }, [continents]);
-    useEffect(() => {
-        filterVms();
-    }, [minCpus, minMemory, minCpuMemory, regions]);
+    }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData]);
 
 
     return <div className="App">
@@ -128,59 +114,42 @@ function App() {
                     className="chart"
                     data={datasets}
                     options={{
-                        responsive: true,
-                        maintainAspectRatio: false, // Add this to allow custom width and height
+                        responsive: true, maintainAspectRatio: false, // Add this to allow custom width and height
                         plugins: {
                             zoom: {
                                 zoom: {
                                     wheel: {
                                         enabled: true // SET SCROOL ZOOM TO TRUE
-                                    },
-                                    mode: "x",
-                                    speed: 100
-                                },
-                                pan: {
-                                    enabled: true,
-                                    mode: "x",
-                                    speed: 100
+                                    }, mode: "x", speed: 100
+                                }, pan: {
+                                    enabled: true, mode: "x", speed: 100
                                 }
-                            },
-                            legend: {
-                                position: 'top',
-                                labels: {
+                            }, legend: {
+                                position: 'top', labels: {
                                     color: 'white' // Legend text color for dark mode
                                 }
-                            },
-                            title: {
+                            }, title: {
                                 display: true,
                             },
-                        },
-                        scales: {
+                        }, scales: {
                             x: {
                                 ticks: {
                                     color: 'black', // X-axis text color for dark mode
                                     callback: function (value, index, values) {
                                         return "$" + value.toFixed(3); // Format X-axis time
                                     }
-                                },
-                                grid: {
+                                }, grid: {
                                     color: 'rgba(10, 10, 10, 0.2)' // X-axis grid line color
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Price per vCPU Core' // X-axis title
+                                }, title: {
+                                    display: true, text: 'Price per vCPU Core' // X-axis title
                                 }
-                            },
-                            y: {
+                            }, y: {
                                 ticks: {
                                     color: 'black' // Y-axis text color for dark mode
-                                },
-                                grid: {
+                                }, grid: {
                                     color: 'rgba(10, 10, 10, 0.2)' // Y-axis grid line color
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Coremark Score per vCPU Code' // Y-axis title
+                                }, title: {
+                                    display: true, text: 'Coremark Score per vCPU Code' // Y-axis title
                                 }
                             }
                         }
@@ -316,6 +285,7 @@ function App() {
                 <th>Memory</th>
                 <th>Benchmark Score</th>
                 <th>Price per Hour</th>
+                <th>Performance per Dollar</th>
             </tr>
             </thead>
             <tbody>
@@ -327,12 +297,12 @@ function App() {
                     <td>{vm["memoryGB"]}</td>
                     <td>{vm["coremarkScore"]}</td>
                     <td>${vm["hour"]}</td>
+                    <td>{vm["coremarkScore"] / vm["hour"]}</td>
                 </tr>;
             })}
             </tbody>
         </table>
-    </div>
-        ;
+    </div>;
 }
 
 export default App;
