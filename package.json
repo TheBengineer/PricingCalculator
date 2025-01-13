@@ -12,9 +12,10 @@
   "bugs": {
     "url": "https://github.com/TheBengineer/PricingCalculator/issues"
   },
-  "homepage": "https://github.com/TheBengineer/PricingCalculator#readme",
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.7",
     "react-dom": "^19.0.0",
     "react-scripts": "^5.0.1"
   },
