@@ -7,6 +7,6 @@ if __name__ == "__main__":
     decoded_content = response.content.decode('utf-8')
     with open("machine-types-regions.csv", "wb") as f:
         f.write(response.content)
-    reader = csv.reader(decoded_content.splitlines(), delimiter=',')
+    reader = csv.DictReader(decoded_content.splitlines(), delimiter=',')
     with open("price_data.json", "w") as f:
         f.write(json.dumps(list(reader),))
