@@ -23,11 +23,12 @@ function App() {
     const [minMemory, setMinMemory] = useState(8);
     const [continents, setContinents] = useState(["us"]);
     const allContinents = ['africa', 'asia', 'australia', 'europe', 'me', 'northamerica', 'southamerica', 'us'];
+    const [allContinentRegions, setAllContinentRegions] = useState([]);
+    const [regions, setRegions] = useState([]);
     const [datasets, setDatasets] = useState({datasets: []});
 
     function buildDatasets(data) {
         const vmFamilies = new Set(data.map(vm => vm["name"].split("-")[0]));
-        console.log("filter", data, vmFamilies);
         const datasets = {
             datasets: [...vmFamilies].map(family => {
                 return {
@@ -50,13 +51,14 @@ function App() {
                     tooltip: {
                         callbacks: {
                             label: function (context) {
-                                var label = context.dataset.data[context.dataIndex].label || '';
-
-                                if (label) {
-                                    label += ': ';
+                                const label = [];
+                                let secondRow = "";
+                                if (!context.dataset.data[context.dataIndex].label) {
+                                    return "";
                                 }
-                                label += `vCPUs: ${context.dataset.data[context.dataIndex].vCpus}, Memory: ${context.dataset.data[context.dataIndex].memoryGB}GB, Benchmark Score: ${context.dataset.data[context.dataIndex].coremarkScore}`;
-                                label += `, Price: ${context.dataset.data[context.dataIndex].price}`;
+                                label.push(context.dataset.data[context.dataIndex].label);
+                                secondRow += `Region: ${context.dataset.data[context.dataIndex].region}, vCpus: ${context.dataset.data[context.dataIndex].vCpus}, Mem: ${context.dataset.data[context.dataIndex].memoryGB}GB, Score: ${context.dataset.data[context.dataIndex].coremarkScore}, Price: ${context.dataset.data[context.dataIndex].price}`;
+                                label.push(secondRow);
                                 return label;
                             },
                             title: function (context) {
@@ -67,14 +69,16 @@ function App() {
                 };
             })
         };
-        console.log("Datasets", datasets);
         setDatasets(datasets);
     }
 
-    useEffect(() => {
-        getVmPriceData(setAllVmPriceData);
-    }, [setAllVmPriceData]);
-    useEffect(() => {
+    function updateRegions() {
+        const allRegionsOnContinent = Array.from(new Set(allVmPriceData.map(vm => vm["region"]).filter(region => continents.includes(region.split("-")[0]))));
+        setAllContinentRegions(allRegionsOnContinent);
+        console.log("All regions", allRegionsOnContinent);
+    }
+
+    function filterVms() {
         console.log("Filtering VMs");
         if (!(minCpus > 0)) {
             setMinMemory(0);
@@ -85,10 +89,24 @@ function App() {
         if (!(minCpuMemory > 0)) {
             setMinCpuMemory(0);
         }
-        const newVmPriceData = allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && continents.includes(vm["region"].split("-")[0])).sort((a, b) => a["hour"] - b["hour"]);
+        const newVmPriceData = allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && regions.includes(vm["region"])).sort((a, b) => a["hour"] - b["hour"]);
         setVmPriceData(newVmPriceData);
         buildDatasets(newVmPriceData);
-    }, [minCpus, minMemory, minCpuMemory, allVmPriceData, continents]);
+    }
+
+    useEffect(() => {
+        getVmPriceData(setAllVmPriceData);
+    }, []);
+    useEffect(() => {
+        updateRegions();
+        filterVms();
+    }, [allVmPriceData]);
+    useEffect(() => {
+        updateRegions();
+    }, [continents]);
+    useEffect(() => {
+        filterVms();
+    }, [minCpus, minMemory, minCpuMemory, allContinentRegions]);
 
 
     return <div className="App">
@@ -98,12 +116,79 @@ function App() {
                 GCP VM Price Calculator
             </h1>
         </div>
+
         <Form>
             <Row>
                 <h2>Filters</h2>
                 <div>Use the filters below to select what VMs are suitable for your workload</div>
             </Row>
-            <br className="horiz"/>
+            <div className="chart-container">
+                <Bubble
+                    className="chart"
+                    data={datasets}
+                    options={{
+                        responsive: true,
+                        maintainAspectRatio: false, // Add this to allow custom width and height
+                        plugins: {
+                            zoom: {
+                                zoom: {
+                                    wheel: {
+                                        enabled: true // SET SCROOL ZOOM TO TRUE
+                                    },
+                                    mode: "x",
+                                    speed: 100
+                                },
+                                pan: {
+                                    enabled: true,
+                                    mode: "x",
+                                    speed: 100
+                                }
+                            },
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: 'white' // Legend text color for dark mode
+                                }
+                            },
+                            title: {
+                                display: true,
+                            },
+                            tooltip: {
+                                bodyColor: 'white', // Tooltip text color
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)', // Tooltip background color
+                                borderColor: 'white', // Tooltip border color
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function (data) {
+                                        return data.dataset.label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'white', // X-axis text color for dark mode
+                                    callback: function (value, index, values) {
+                                        return new Date(value).toLocaleString(); // Format X-axis time
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.2)' // X-axis grid line color
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: 'white' // Y-axis text color for dark mode
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.2)' // Y-axis grid line color
+                                }
+                            }
+                        }
+                    }}
+                />
+            </div>
             <Row>
                 <Col>
                     <Form.Group controlId="minCpus">
@@ -136,7 +221,7 @@ function App() {
                         <div>
                             <Form.Label column="">Continents</Form.Label>
                         </div>
-                        <div className="continents">
+                        <div className="check-row">
                             <Form.Check type="checkbox" label="All"
                                         checked={continents.length === allContinents.length}
                                         onChange={(e) => {
@@ -156,7 +241,7 @@ function App() {
                                         }}/>
 
                         </div>
-                        <div className="continents">
+                        <div className="check-row">
                             {allContinents.map((continent, index) => {
                                 return <Form.Check
                                     key={index}
@@ -176,74 +261,53 @@ function App() {
                     </Form.Group>
                 </Col>
             </Row>
+            <Row>
+                <Col>
+                    <Form.Group controlId="regions">
+                        <div className="check-row">
+                            <Form.Label column="">Regions</Form.Label>
+                        </div>
+                        <div className="check-row">
+                            <Form.Check type="checkbox" label="All"
+                                        checked={regions.length === allContinentRegions.length}
+                                        onChange={(e) => {
+                                            if (regions.length === allContinentRegions.length) {
+                                                setRegions([]);
+                                            } else {
+                                                setRegions(allContinentRegions);
+                                            }
+                                        }}/>
+                            <Form.Check type="checkbox" label="None" checked={regions.length === 0}
+                                        onChange={(e) => {
+                                            if (regions.length === 0) {
+                                                setRegions(allContinentRegions);
+                                            } else {
+                                                setRegions([]);
+                                            }
+                                        }}/>
+                        </div>
+                        <div className="check-row">
+                            {allContinentRegions.map((region, index) => {
+                                return <Form.Check
+                                    key={index}
+                                    type="checkbox"
+                                    label={region}
+                                    checked={regions.includes(region)}
+                                    onChange={(e) => {
+                                        if (regions.includes(region)) {
+                                            setRegions(regions.filter(c => c !== region));
+                                        } else {
+                                            setRegions([...regions, region]);
+                                        }
+                                    }}
+                                />;
+                            })}
+                        </div>
+                    </Form.Group>
+                </Col>
+            </Row>
         </Form>
-        <div className="chart-container">
-            <Bubble
-                className="chart"
-                data={datasets}
-                options={{
-                    responsive: true,
-                    maintainAspectRatio: false, // Add this to allow custom width and height
-                    plugins: {
-                        zoom: {
-                            zoom: {
-                                wheel: {
-                                    enabled: true // SET SCROOL ZOOM TO TRUE
-                                },
-                                mode: "x",
-                                speed: 100
-                            },
-                            pan: {
-                                enabled: true,
-                                mode: "x",
-                                speed: 100
-                            }
-                        },
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                color: 'white' // Legend text color for dark mode
-                            }
-                        },
-                        title: {
-                            display: false,
-                        },
-                        tooltip: {
-                            bodyColor: 'white', // Tooltip text color
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)', // Tooltip background color
-                            borderColor: 'white', // Tooltip border color
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function (data) {
-                                    return data.dataset.label + ': (' + new Date(data.parsed.x).toLocaleTimeString() + ', ' + data.parsed.y + ')';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: 'white', // X-axis text color for dark mode
-                                callback: function (value, index, values) {
-                                    return new Date(value).toLocaleString(); // Format X-axis time
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.2)' // X-axis grid line color
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                color: 'white' // Y-axis text color for dark mode
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.2)' // Y-axis grid line color
-                            }
-                        }
-                    }
-                }}
-            />
-        </div>
+
 
         <table className='vm-table'>
             <thead>
