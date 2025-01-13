@@ -1,3 +1,4 @@
+
 export function getVmPriceData(setVmPriceData) {
     fetch("./data/machine-types-regions.csv").then(
         response => response.text()

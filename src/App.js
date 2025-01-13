@@ -7,7 +7,6 @@ import {getVmPriceData} from "./data";
 function App() {
     const [vmPriceData, setVmPriceData] = useState([]);
     useEffect(() => {
-        console.log("fetching data");
         getVmPriceData(setVmPriceData);
     }, [setVmPriceData]);
     return (<div className="App">
@@ -21,15 +20,15 @@ function App() {
             {vmPriceData.map((vm, index) => {
                     return (
                         <div key={index} className="vm">
-                            <h2>{vm["Machine Type"]}</h2>
-                            <h3>CPUs: {vm["CPUs"]}</h3>
-                            <h3>Memory: {vm["Memory"]}</h3>
-                            <h3>Price: {vm["Price"]}</h3>
+                            <h2>{vm["name"]}</h2>
+                            <h3>CPUs: {vm["vCpus"]}</h3>
+                            <h3>Memory: {vm["memoryGB"]}</h3>
+                            <h3>Price: {vm["hour"]}</h3>
                         </div>
                     );
                 }
             )}
-            
+
         </div>
     </div>);
 }
