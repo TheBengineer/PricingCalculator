@@ -1,4 +1,4 @@
-import logo from './favicon-512x512.png';
+import logo from './Logo/Price Calculator Logo.png';
 import './App.css';
 
 function App() {
