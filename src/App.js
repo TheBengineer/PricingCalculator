@@ -6,10 +6,13 @@ import {getVmPriceData} from "./data";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {Chart as ChartJS, Legend, Tooltip} from "chart.js";
+import {Chart as ChartJS, Legend, registerables, Tooltip} from "chart.js";
 import {Bubble} from "react-chartjs-2";
+import zoomPlugin from 'chartjs-plugin-zoom';
 
+ChartJS.register(...registerables);
 ChartJS.register(Tooltip, Legend);
+ChartJS.register(zoomPlugin);
 
 
 function App() {
@@ -20,6 +23,54 @@ function App() {
     const [minMemory, setMinMemory] = useState(8);
     const [continents, setContinents] = useState(["us"]);
     const allContinents = ['africa', 'asia', 'australia', 'europe', 'me', 'northamerica', 'southamerica', 'us'];
+    const [datasets, setDatasets] = useState({datasets: []});
+
+    function buildDatasets(data) {
+        const vmFamilies = new Set(data.map(vm => vm["name"].split("-")[0]));
+        console.log("filter", data, vmFamilies);
+        const datasets = {
+            datasets: [...vmFamilies].map(family => {
+                return {
+                    label: family,
+                    data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
+                        return {
+                            x: vm["hour"] / vm["vCpus"],
+                            y: vm["coremarkScore"],
+                            r: vm["memoryGB"] / vm["vCpus"],
+                            label: vm["name"],
+                            series: vm["name"].split("-")[0],
+                            region: vm["region"],
+                            vCpus: vm["vCpus"],
+                            memoryGB: vm["memoryGB"],
+                            coremarkScore: vm["coremarkScore"],
+                            hour: vm["hour"],
+                            price: `$${vm["hour"]}`,
+                        };
+                    }),
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                var label = context.dataset.data[context.dataIndex].label || '';
+
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += `vCPUs: ${context.dataset.data[context.dataIndex].vCpus}, Memory: ${context.dataset.data[context.dataIndex].memoryGB}GB, Benchmark Score: ${context.dataset.data[context.dataIndex].coremarkScore}`;
+                                label += `, Price: ${context.dataset.data[context.dataIndex].price}`;
+                                return label;
+                            },
+                            title: function (context) {
+                                return context[0].dataset.label;
+                            }
+                        }
+                    }
+                };
+            })
+        };
+        console.log("Datasets", datasets);
+        setDatasets(datasets);
+    }
+
     useEffect(() => {
         getVmPriceData(setAllVmPriceData);
     }, [setAllVmPriceData]);
@@ -34,9 +85,13 @@ function App() {
         if (!(minCpuMemory > 0)) {
             setMinCpuMemory(0);
         }
-        setVmPriceData(allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && continents.includes(vm["region"].split("-")[0])).sort((a, b) => a["hour"] - b["hour"]));
+        const newVmPriceData = allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && continents.includes(vm["region"].split("-")[0])).sort((a, b) => a["hour"] - b["hour"]);
+        setVmPriceData(newVmPriceData);
+        buildDatasets(newVmPriceData);
     }, [minCpus, minMemory, minCpuMemory, allVmPriceData, continents]);
-    return (<div className="App">
+
+
+    return <div className="App">
         <div className="App-header">
             <img src={logo} className="App-logo" alt="Price Calculator Logo" width="40px"/>
             <h1>
@@ -103,7 +158,7 @@ function App() {
                         </div>
                         <div className="continents">
                             {allContinents.map((continent, index) => {
-                                return (<Form.Check
+                                return <Form.Check
                                     key={index}
                                     type="checkbox"
                                     label={continent}
@@ -115,37 +170,80 @@ function App() {
                                             setContinents([...continents, continent]);
                                         }
                                     }}
-                                />);
+                                />;
                             })}
                         </div>
                     </Form.Group>
                 </Col>
             </Row>
         </Form>
-        <Bubble
-            data={{
-                datasets: [{
-                    label: 'VMs', data: vmPriceData.map(vm => {
-                        return {
-                            x: vm["vCpus"], y: vm["hour"], r: vm["memoryGB"]
-                        };
-                    }),
-                }],
-            }}
-            options={{
-                scales: {
-                    x: {
+        <div className="chart-container">
+            <Bubble
+                className="chart"
+                data={datasets}
+                options={{
+                    responsive: true,
+                    maintainAspectRatio: false, // Add this to allow custom width and height
+                    plugins: {
+                        zoom: {
+                            zoom: {
+                                wheel: {
+                                    enabled: true // SET SCROOL ZOOM TO TRUE
+                                },
+                                mode: "x",
+                                speed: 100
+                            },
+                            pan: {
+                                enabled: true,
+                                mode: "x",
+                                speed: 100
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'white' // Legend text color for dark mode
+                            }
+                        },
                         title: {
-                            display: true, text: 'vCPUs'
+                            display: false,
+                        },
+                        tooltip: {
+                            bodyColor: 'white', // Tooltip text color
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)', // Tooltip background color
+                            borderColor: 'white', // Tooltip border color
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function (data) {
+                                    return data.dataset.label + ': (' + new Date(data.parsed.x).toLocaleTimeString() + ', ' + data.parsed.y + ')';
+                                }
+                            }
                         }
-                    }, y: {
-                        title: {
-                            display: true, text: 'Price per Hour'
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: 'white', // X-axis text color for dark mode
+                                callback: function (value, index, values) {
+                                    return new Date(value).toLocaleString(); // Format X-axis time
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)' // X-axis grid line color
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'white' // Y-axis text color for dark mode
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)' // Y-axis grid line color
+                            }
                         }
                     }
-                }
-            }}
-        />
+                }}
+            />
+        </div>
 
         <table className='vm-table'>
             <thead>
@@ -154,20 +252,25 @@ function App() {
                 <th>VM Name</th>
                 <th>CPUs</th>
                 <th>Memory</th>
+                <th>Benchmark Score</th>
                 <th>Price per Hour</th>
             </tr>
             </thead>
+            <tbody>
             {vmPriceData.map((vm, index) => {
-                return (<tr key={index} className="vm-row">
+                return <tr key={index} className="vm-row">
                     <td>{vm["region"]}</td>
                     <td>{vm["name"]}</td>
                     <td>{vm["vCpus"]}</td>
                     <td>{vm["memoryGB"]}</td>
+                    <td>{vm["coremarkScore"]}</td>
                     <td>${vm["hour"]}</td>
-                </tr>);
+                </tr>;
             })}
+            </tbody>
         </table>
-    </div>);
+    </div>
+        ;
 }
 
 export default App;

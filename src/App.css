@@ -28,3 +28,16 @@
     width: 100%;
     flex-flow: wrap;
 }
+
+.chart-container {
+    border: 1px solid #000;
+    overflow: hidden;
+    position: relative;
+    resize: both;
+}
+
+.chart {
+    width: 100%;
+    height: 400px; /* Set the desired height for the chart */
+    margin: 20px 0; /* Optional: Add some margin around the chart */
+}
