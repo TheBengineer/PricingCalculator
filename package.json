@@ -1,0 +1,19 @@
+{
+  "name": "pricingcalculator",
+  "version": "1.0.0",
+  "description": "A webapp to calculate price efficient VM allocations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheBengineer/PricingCalculator.git"
+  },
+  "author": "Ben Holleran <BengineeringELM@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheBengineer/PricingCalculator/issues"
+  },
+  "homepage": "https://github.com/TheBengineer/PricingCalculator#readme"
+}
