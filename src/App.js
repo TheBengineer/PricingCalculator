@@ -6,13 +6,8 @@ import {getVmPriceData} from "./data";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {Chart as ChartJS, Legend, registerables, Tooltip} from "chart.js";
-import {Bubble} from "react-chartjs-2";
-import zoomPlugin from 'chartjs-plugin-zoom';
 
-ChartJS.register(...registerables);
-ChartJS.register(Tooltip, Legend);
-ChartJS.register(zoomPlugin);
+import {buildDatasets, buildOptions, PRICEvSPOT, ScatterChart, SCOREvPRICE} from "./chart";
 
 
 function App() {
@@ -26,48 +21,21 @@ function App() {
     const [allContinentRegions, setAllContinentRegions] = useState([]);
     const [regions, setRegions] = useState([]);
     const [datasets, setDatasets] = useState({datasets: []});
+    const [options, setOptions] = useState({});
+    const [mode, setMode] = useState(PRICEvSPOT)
 
-    function buildDatasets(data) {
-        const vmFamilies = new Set(data.map(vm => vm["name"].split("-")[0]));
-        const datasets = {
-            datasets: [...vmFamilies].map(family => {
-                return {
-                    label: family,
-                    data: data.filter(vm => vm["name"].startsWith(family)).map(vm => {
-                        return {
-                            x: vm["coremarkScore"] / vm["vCpus"] / vm["hour"],
-                            y: vm["coremarkScore"] / vm["vCpus"] / vm["hourSpot"],
-                            r: Math.log(vm["vCpus"]),
-                            label: vm["name"],
-                            series: vm["name"].split("-")[0],
-                            region: vm["region"],
-                            vCpus: vm["vCpus"],
-                            memoryGB: vm["memoryGB"],
-                            coremarkScore: vm["coremarkScore"],
-                            hour: vm["hour"],
-                            price: `$${vm["hour"]}`,
-                            spot: `$${vm["hourSpot"]}`,
-                        };
-                    }),
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                const label = [];
-                                let secondRow = "";
-                                if (!context.dataset.data[context.dataIndex].label) {
-                                    return "";
-                                }
-                                label.push(context.dataset.data[context.dataIndex].label);
-                                secondRow += `Region: ${context.dataset.data[context.dataIndex].region}, vCpus: ${context.dataset.data[context.dataIndex].vCpus}, Mem: ${context.dataset.data[context.dataIndex].memoryGB}GB, Score: ${context.dataset.data[context.dataIndex].coremarkScore}, Price: ${context.dataset.data[context.dataIndex].price}, Spot: ${context.dataset.data[context.dataIndex].spot}`;
-                                label.push(secondRow);
-                                return label;
-                            }
-                        }
-                    }
-                };
-            })
-        };
-        setDatasets(datasets);
+
+    function switchMode() {
+        switch (mode) {
+            case SCOREvPRICE:
+                setMode(PRICEvSPOT);
+                break;
+            case PRICEvSPOT:
+                setMode(SCOREvPRICE);
+                break;
+            default:
+                setMode(SCOREvPRICE);
+        }
     }
 
 
@@ -93,8 +61,10 @@ function App() {
             .sort((a, b) => b["coremarkScore"] / b["hour"] - a["coremarkScore"] / a["hour"]);
         console.log("Filtered " + newVmPriceData.length + " VMs");
         setVmPriceData(newVmPriceData);
-        buildDatasets(newVmPriceData);
-    }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData]);
+        setOptions(buildOptions(mode));
+        setDatasets(buildDatasets(newVmPriceData, mode));
+        console.log("Updated VMs", datasets, options);
+    }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData, mode]);
 
 
     return <div className="App">
@@ -107,56 +77,33 @@ function App() {
 
         <Form>
             <Row>
-                <h2>Filters</h2>
-                <div>Use the filters below to select what VMs are suitable for your workload</div>
+                <div>The following Chart shows Google VM price performance using te following modes. Use the filters
+                    below the chart to show only VMs suitable for your workflow. There is a table below with VM details.
+                </div>
+            </Row>
+            <Row>
+                <Col>
+                    <Form.Group controlId="mode" style={{display: "flex"}}>
+                        <Form.Check type="checkbox"
+                                    label="Performance Vs Price"
+                                    id="mode-score-price"
+                                    checked={mode === SCOREvPRICE}
+                                    onChange={switchMode}/>
+                        <Form.Check type="checkbox"
+                                    label="Price performance vs Spot Price Performance"
+                                    id="mode-price-spot"
+                                    checked={mode === PRICEvSPOT}
+                                    onChange={switchMode}/>
+                    </Form.Group>
+                </Col>
             </Row>
             <div className="chart-container">
-                <Bubble
-                    className="chart"
-                    data={datasets}
-                    options={{
-                        responsive: true,
-                        maintainAspectRatio: false, // Add this to allow custom width and height
-                        plugins: {
-                            zoom: {
-                                zoom: {
-                                    wheel: {
-                                        enabled: true // SET SCROOL ZOOM TO TRUE
-                                    }, mode: "x", speed: 100
-                                }, pan: {
-                                    enabled: true, mode: "x", speed: 100
-                                }
-                            }, legend: {
-                                position: 'top',
-                                labels: {
-                                    color: 'black' // Legend text color for dark mode
-                                },
-                            },
-                        }, scales: {
-                            x: {
-                                ticks: {
-                                    color: 'black', // X-axis text color for dark mode
-                                    callback: function (value, index, values) {
-                                        return "$" + value.toFixed(3); // Format X-axis time
-                                    }
-                                }, grid: {
-                                    color: 'rgba(10, 10, 10, 0.2)' // X-axis grid line color
-                                }, title: {
-                                    display: true, text: 'Price per vCPU Core' // X-axis title
-                                }
-                            }, y: {
-                                ticks: {
-                                    color: 'black' // Y-axis text color for dark mode
-                                }, grid: {
-                                    color: 'rgba(10, 10, 10, 0.2)' // Y-axis grid line color
-                                }, title: {
-                                    display: true, text: 'Coremark Score per vCPU Code' // Y-axis title
-                                }
-                            }
-                        }
-                    }}
+                <ScatterChart
+                    options={options}
+                    datasets={datasets}
                 />
             </div>
+            <h2>Filters</h2>
             <Row>
                 <Col>
                     <Form.Group controlId="minCpus">
@@ -185,12 +132,14 @@ function App() {
             </Row>
             <Row>
                 <Col>
-                    <Form.Group controlId="continents">
+                    <Form.Group controlId="continents" id="continents">
                         <div>
                             <Form.Label column="">Continents</Form.Label>
                         </div>
                         <div className="check-row">
-                            <Form.Check type="checkbox" label="All"
+                            <Form.Check type="checkbox"
+                                        label="All"
+                                        id="cont-all"
                                         checked={continents.length === allContinents.length}
                                         onChange={(e) => {
                                             if (continents.length === allContinents.length) {
@@ -199,7 +148,10 @@ function App() {
                                                 setContinents(allContinents);
                                             }
                                         }}/>
-                            <Form.Check type="checkbox" label="None" checked={continents.length === 0}
+                            <Form.Check type="checkbox"
+                                        label="None"
+                                        id="cont-none"
+                                        checked={continents.length === 0}
                                         onChange={(e) => {
                                             if (continents.length === 0) {
                                                 setContinents(allContinents);
@@ -213,6 +165,7 @@ function App() {
                             {allContinents.map((continent, index) => {
                                 return <Form.Check
                                     key={index}
+                                    id={"cont-" + continent}
                                     type="checkbox"
                                     label={continent}
                                     checked={continents.includes(continent)}
@@ -236,7 +189,9 @@ function App() {
                             <Form.Label column="">Regions</Form.Label>
                         </div>
                         <div className="check-row">
-                            <Form.Check type="checkbox" label="All"
+                            <Form.Check type="checkbox"
+                                        label="All"
+                                        id="region-all"
                                         checked={regions.length === allContinentRegions.length}
                                         onChange={(e) => {
                                             if (regions.length === allContinentRegions.length) {
@@ -245,7 +200,10 @@ function App() {
                                                 setRegions(allContinentRegions);
                                             }
                                         }}/>
-                            <Form.Check type="checkbox" label="None" checked={regions.length === 0}
+                            <Form.Check type="checkbox"
+                                        label="None"
+                                        id="region-none"
+                                        checked={regions.length === 0}
                                         onChange={(e) => {
                                             if (regions.length === 0) {
                                                 setRegions(allContinentRegions);
@@ -258,6 +216,7 @@ function App() {
                             {allContinentRegions.map((region, index) => {
                                 return <Form.Check
                                     key={index}
+                                    id={"region-" + region}
                                     type="checkbox"
                                     label={region}
                                     checked={regions.includes(region)}
@@ -287,6 +246,7 @@ function App() {
                 <th>Benchmark Score</th>
                 <th>Price per Hour</th>
                 <th>Performance per Dollar</th>
+                <th>Accelerator</th>
             </tr>
             </thead>
             <tbody>
@@ -299,6 +259,7 @@ function App() {
                     <td>{vm["coremarkScore"]}</td>
                     <td>${vm["hour"]}</td>
                     <td>{vm["coremarkScore"] / vm["hour"]}</td>
+                    <td>{vm["acceleratorType"] && vm["acceleratorCount"] + "x" + vm["acceleratorType"]}</td>
                 </tr>;
             })}
             </tbody>
