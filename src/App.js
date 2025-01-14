@@ -6,6 +6,9 @@ import {getVmPriceData} from "./data";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import ToggleButton from "react-bootstrap/ToggleButton";
+
 
 import {buildDatasets, buildOptions, PRICEvSPOT, ScatterChart, SCOREvPRICE} from "./chart";
 
@@ -23,20 +26,6 @@ function App() {
     const [datasets, setDatasets] = useState({datasets: []});
     const [options, setOptions] = useState({});
     const [mode, setMode] = useState(PRICEvSPOT)
-
-
-    function switchMode() {
-        switch (mode) {
-            case SCOREvPRICE:
-                setMode(PRICEvSPOT);
-                break;
-            case PRICEvSPOT:
-                setMode(SCOREvPRICE);
-                break;
-            default:
-                setMode(SCOREvPRICE);
-        }
-    }
 
 
     useEffect(() => {
@@ -63,7 +52,6 @@ function App() {
         setVmPriceData(newVmPriceData);
         setOptions(buildOptions(mode));
         setDatasets(buildDatasets(newVmPriceData, mode));
-        console.log("Updated VMs", datasets, options);
     }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData, mode]);
 
 
@@ -83,18 +71,24 @@ function App() {
             </Row>
             <Row>
                 <Col>
-                    <Form.Group controlId="mode" style={{display: "flex"}}>
-                        <Form.Check type="checkbox"
-                                    label="Performance Vs Price"
-                                    id="mode-score-price"
-                                    checked={mode === SCOREvPRICE}
-                                    onChange={switchMode}/>
-                        <Form.Check type="checkbox"
-                                    label="Price performance vs Spot Price Performance"
-                                    id="mode-price-spot"
-                                    checked={mode === PRICEvSPOT}
-                                    onChange={switchMode}/>
-                    </Form.Group>
+                    <ButtonGroup controlId="mode" style={{display: "flex"}}>
+                        <ToggleButton type="checkbox"
+                                      variant="outline-primary"
+                                      id="mode-score-price"
+                                      checked={mode === SCOREvPRICE}
+                                      onChange={(e) => setMode(SCOREvPRICE)}
+                                      value={SCOREvPRICE}>
+                            Performance Vs Price
+                        </ToggleButton>
+                        <ToggleButton type="checkbox"
+                                      id="mode-price-spot"
+                                      variant="outline-primary"
+                                      checked={mode === PRICEvSPOT}
+                                      onChange={(e) => setMode(PRICEvSPOT)}
+                                      value={PRICEvSPOT}>
+                            Price performance vs Spot Price Performance
+                        </ToggleButton>
+                    </ButtonGroup>
                 </Col>
             </Row>
             <div className="chart-container">

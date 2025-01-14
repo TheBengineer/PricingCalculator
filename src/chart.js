@@ -32,27 +32,25 @@ export function buildOptions(mode) {
     let xCallback;
 
     switch (mode) {
-        case SCOREvPRICE+11:
+        case SCOREvPRICE:
             xLabel = "Coremark Score per vCPU Core";
             yLabel = "Price per vCPU Core";
             xCallback = function (value, index, values) {
-                return "asdfasdf";
+                return "$" + value.toFixed(3);
             };
             break;
         case PRICEvSPOT:
-            xLabel = "Price per vCPU Core";
-            yLabel = "Spot Price per vCPU Core";
+            xLabel = "Performance per Dollar";
+            yLabel = "Spot Performance per Dollar";
             xCallback = function (value, index, values) {
-                return "asdfasdf";
-                // return "$" + value.toFixed(3);
+                return value.toLocaleString();
             };
             break;
         default:
             xLabel = "Coremark Score per vCPU Core";
             yLabel = "Price per vCPU Core";
             xCallback = function (value, index, values) {
-                return "asdfasdf";
-                // return value.toLocaleString();
+                return value.toLocaleString();
             };
     }
 
@@ -75,7 +73,8 @@ export function buildOptions(mode) {
                     color: 'black' // Legend text color for dark mode
                 },
             },
-        }, scales: {
+        },
+        scales: {
             x: {
                 ticks: {
                     color: 'black', // X-axis text color for dark mode
@@ -95,7 +94,7 @@ export function buildOptions(mode) {
                     display: true,
                     text: yLabel
                 }
-            }
+            },
         }
     };
 }
@@ -106,14 +105,14 @@ export function buildDatasets(data, mode) {
     let yVal;
     let rVal;
     switch (mode) {
-        case SCOREvPRICE+11:
+        case SCOREvPRICE + 11:
             xVal = (vm) => vm["coremarkScore"] / vm["vCpus"];
             yVal = (vm) => vm["hour"];
             rVal = (vm) => vm["memoryGB"];
             break;
         case PRICEvSPOT:
-            xVal = (vm) => vm["coremarkScore"] / vm["vCpus"] / vm["hour"];
-            yVal = (vm) => vm["coremarkScore"] / vm["vCpus"] / vm["hourSpot"];
+            xVal = (vm) => vm["coremarkScore"] / vm["hour"];
+            yVal = (vm) => vm["coremarkScore"] / vm["hourSpot"];
             rVal = (vm) => Math.log(vm["vCpus"]);
             break;
         default:
