@@ -33,8 +33,8 @@ export function buildOptions(mode) {
 
     switch (mode) {
         case SCOREvPRICE:
-            xLabel = "Coremark Score per vCPU Core";
-            yLabel = "Price per vCPU Core";
+            xLabel = "Price per vCPU Core";
+            yLabel = "Coremark Score per vCPU Core";
             xCallback = function (value, index, values) {
                 return "$" + value.toFixed(3);
             };
@@ -47,8 +47,8 @@ export function buildOptions(mode) {
             };
             break;
         default:
-            xLabel = "Coremark Score per vCPU Core";
-            yLabel = "Price per vCPU Core";
+            xLabel = "Price per vCPU Core";
+            yLabel = "Coremark Score per vCPU Core";
             xCallback = function (value, index, values) {
                 return value.toLocaleString();
             };
