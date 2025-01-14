@@ -105,10 +105,10 @@ export function buildDatasets(data, mode) {
     let yVal;
     let rVal;
     switch (mode) {
-        case SCOREvPRICE + 11:
-            xVal = (vm) => vm["coremarkScore"] / vm["vCpus"];
-            yVal = (vm) => vm["hour"];
-            rVal = (vm) => vm["memoryGB"];
+        case SCOREvPRICE:
+            xVal = (vm) => vm["hour"];
+            yVal = (vm) => vm["coremarkScore"] / vm["vCpus"];
+            rVal = (vm) => Math.log(vm["vCpus"]);
             break;
         case PRICEvSPOT:
             xVal = (vm) => vm["coremarkScore"] / vm["hour"];
@@ -116,9 +116,9 @@ export function buildDatasets(data, mode) {
             rVal = (vm) => Math.log(vm["vCpus"]);
             break;
         default:
-            xVal = (vm) => vm["coremarkScore"] / vm["vCpus"];
-            yVal = (vm) => vm["hour"];
-            rVal = (vm) => vm["memoryGB"];
+            xVal = (vm) => vm["hour"];
+            yVal = (vm) => vm["coremarkScore"] / vm["vCpus"];
+            rVal = (vm) => Math.log(vm["vCpus"]);
             break;
     }
 
