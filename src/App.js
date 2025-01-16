@@ -65,7 +65,7 @@ function App() {
 
         <Form>
             <Row>
-                <div>The following Chart shows Google VM price performance using data from <a href="https://gcloud-compute.com/">gcloud-compute.com</a> Use the filters
+                <div>The following Chart shows Google VM price performance using data from <a href="https://gcloud-compute.com/">gcloud-compute.com</a>
                     <br/>
                     Use the filters below the chart to show only VMs suitable for your workflow.
                 </div>
