@@ -9,7 +9,6 @@ import Col from "react-bootstrap/Col";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 
-
 import {buildDatasets, buildOptions, PRICEvSPOT, ScatterChart, SCOREvPRICE} from "./chart";
 
 
@@ -25,8 +24,8 @@ function App() {
     const [regions, setRegions] = useState([]);
     const [datasets, setDatasets] = useState({datasets: []});
     const [options, setOptions] = useState({});
-    const [mode, setMode] = useState(PRICEvSPOT)
-
+    const location = window.location;
+    const [mode, setMode] = useState(location.pathname === "/spot-performance" ? PRICEvSPOT : SCOREvPRICE);
 
     useEffect(() => {
         getVmPriceData(setAllVmPriceData);
@@ -52,6 +51,10 @@ function App() {
         setVmPriceData(newVmPriceData);
         setOptions(buildOptions(mode));
         setDatasets(buildDatasets(newVmPriceData, mode));
+        const newUrl = mode === PRICEvSPOT ? "/spot-performance" : "/price-performance";
+        if (location.pathname !== newUrl) {
+            window.history.pushState({}, "", newUrl);
+        }
     }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData, mode]);
 
 
@@ -65,7 +68,8 @@ function App() {
 
         <Form>
             <Row>
-                <div>The following Chart shows Google VM price performance using data from <a href="https://gcloud-compute.com/">gcloud-compute.com</a>
+                <div>The following Chart shows Google VM price performance using data from <a
+                    href="https://gcloud-compute.com/">gcloud-compute.com</a>
                     <br/>
                     Use the filters below the chart to show only VMs suitable for your workflow.
                 </div>
