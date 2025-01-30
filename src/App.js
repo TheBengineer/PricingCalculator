@@ -45,8 +45,11 @@ function App() {
         if (!(minCpuMemory > 0)) {
             setMinCpuMemory(0);
         }
-        const newVmPriceData = allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && regions.includes(vm["region"]))
-            .sort((a, b) => b["coremarkScore"] / b["hour"] - a["coremarkScore"] / a["hour"]);
+        const newVmPriceData = mode === PRICEvSPOT ?
+            allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && regions.includes(vm["region"]))
+                .sort((a, b) => b["coremarkScore"] / b["hourSpot"] - a["coremarkScore"] / a["hourSpot"])
+            : allVmPriceData.filter(vm => vm["vCpus"] >= minCpus && vm["memoryGB"] >= minMemory && vm["memoryGB"] >= minCpuMemory * vm["vCpus"] && regions.includes(vm["region"]))
+                .sort((a, b) => b["coremarkScore"] / b["hour"] - a["coremarkScore"] / a["hour"]);
         console.log("Filtered " + newVmPriceData.length + " VMs");
         setVmPriceData(newVmPriceData);
         setOptions(buildOptions(mode));
@@ -245,6 +248,7 @@ function App() {
                 <th>Benchmark Score</th>
                 <th>Price per Hour</th>
                 <th>Performance per Dollar</th>
+                <th>Spot Performance per Dollar</th>
                 <th>Accelerator</th>
             </tr>
             </thead>
@@ -257,7 +261,8 @@ function App() {
                     <td>{vm["memoryGB"]}</td>
                     <td>{vm["coremarkScore"]}</td>
                     <td>${vm["hour"]}</td>
-                    <td>{vm["coremarkScore"] / vm["hour"]}</td>
+                    <td>{(vm["coremarkScore"] / vm["hour"]).toLocaleString()}</td>
+                    <td>{(vm["coremarkScore"] / vm["hourSpot"]).toLocaleString()}</td>
                     <td>{vm["acceleratorType"] && vm["acceleratorCount"] + "x" + vm["acceleratorType"]}</td>
                 </tr>;
             })}
