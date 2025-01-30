@@ -25,7 +25,7 @@ function App() {
     const [datasets, setDatasets] = useState({datasets: []});
     const [options, setOptions] = useState({});
     const location = window.location;
-    const [mode, setMode] = useState(location.pathname === "/spot-performance" ? PRICEvSPOT : SCOREvPRICE);
+    const [mode, setMode] = useState(location.pathname === "#spot-performance" ? PRICEvSPOT : SCOREvPRICE);
 
     useEffect(() => {
         getVmPriceData(setAllVmPriceData);
@@ -51,7 +51,7 @@ function App() {
         setVmPriceData(newVmPriceData);
         setOptions(buildOptions(mode));
         setDatasets(buildDatasets(newVmPriceData, mode));
-        const newUrl = mode === PRICEvSPOT ? "/spot-performance" : "/price-performance";
+        const newUrl = mode === PRICEvSPOT ? "#spot-performance" : "#price-performance";
         if (location.pathname !== newUrl) {
             window.history.pushState({}, "", newUrl);
         }
