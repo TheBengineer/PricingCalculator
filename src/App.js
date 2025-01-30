@@ -8,6 +8,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
+import Table from 'react-bootstrap/Table';
 
 import {buildDatasets, buildOptions, PRICEvSPOT, ScatterChart, SCOREvPRICE} from "./chart";
 
@@ -238,7 +239,7 @@ function App() {
         </Form>
 
 
-        <table className='vm-table'>
+        <Table className='vm-table' striped bordered>
             <thead>
             <tr>
                 <th>Region</th>
@@ -267,7 +268,7 @@ function App() {
                 </tr>;
             })}
             </tbody>
-        </table>
+        </Table>
     </div>;
 }
 
