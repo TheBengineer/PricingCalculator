@@ -55,7 +55,7 @@ function App() {
         if (location.pathname !== newUrl) {
             window.history.pushState({}, "", newUrl);
         }
-    }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData, mode]);
+    }, [minCpus, minMemory, minCpuMemory, regions, allVmPriceData, mode, location.pathname]);
 
 
     return <div className="App">
